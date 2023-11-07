@@ -1,6 +1,6 @@
 schemaVersion: 2.1.0
 metadata:
-  name: golang
+  name: space-demo
 components:
   - name: tools
     container:
