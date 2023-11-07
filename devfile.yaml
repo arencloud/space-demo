@@ -43,3 +43,11 @@ commands:
       commandLine: ./space-demo
       group:
         kind: run
+  - id: odo-push
+    exec:
+      label: 4.ODO-Push
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/space-demo
+      commandLine: odo push
+      group:
+        kind: run
