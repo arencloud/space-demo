@@ -18,6 +18,7 @@ components:
           name: 'space-demo'
           protocol: http
           targetPort: 8080
+          path: /
 commands:
   - id: build
     exec:
@@ -49,4 +50,4 @@ commands:
       label: 4.ODO-Push
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: odo dev
+      commandLine: odo deploy
