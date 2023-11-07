@@ -27,6 +27,7 @@ commands:
       commandLine: go build
       group:
         kind: build
+        isDefault: true
   - id: test
     exec:
       label: 2.Test
