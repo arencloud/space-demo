@@ -44,9 +44,9 @@ commands:
       commandLine: ./space-demo
       group:
         kind: run
-  - id: odo-push
+  - id: cleanup
     exec:
-      label: 4.ODO-Push
+      label: 4.Cleanup
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: odo dev
+      commandLine: rm -rf ./space-demo
