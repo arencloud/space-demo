@@ -18,6 +18,21 @@ components:
           name: 'space-demo'
           protocol: http
           targetPort: 8080
+
+  - name: build
+    image:
+      dockerfile:
+        buildContext: .
+        rootRequired: false
+        uri: docker/Dockerfile
+        imageName: space-demo:v1
+  - name: deploy
+    kubernetes:
+      endpoint:
+      - name: space-demo-8080
+        targetPort: 8080
+      uri: kubernetes/deploy.yaml
+  
 commands:
   - id: build
     exec:
@@ -33,7 +48,7 @@ commands:
       label: 2.Test
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: go test
+      commandLine: go test -v
       group:
         kind: test
   - id: run
