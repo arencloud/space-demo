@@ -1,14 +1,11 @@
-schemaVersion: 2.1.0
+schemaVersion: 2.2.0
 metadata:
   name: space-demo
 components:
   - name: tools
     container:
-      image: registry.redhat.io/devspaces/udi-rhel8:3.9
+      image: registry.redhat.io/devspaces/udi-rhel8:3.9-18
       memoryLimit: '2Gi'
-      memoryRequest: '1Gi'
-      cpuLimit: '1'
-      cpuRequest: '0.5'
       mountSources: true
       env:
         - name: COCACHE
@@ -18,21 +15,6 @@ components:
           name: 'space-demo'
           protocol: http
           targetPort: 8080
-
-  - name: build
-    image:
-      dockerfile:
-        buildContext: .
-        rootRequired: false
-        uri: docker/Dockerfile
-        imageName: space-demo:v1
-  - name: deploy
-    kubernetes:
-      endpoint:
-      - name: space-demo-8080
-        targetPort: 8080
-      uri: kubernetes/deploy.yaml
-  
 commands:
   - id: build
     exec:
@@ -48,7 +30,7 @@ commands:
       label: 2.Test
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: go test -v
+      commandLine: go test
       group:
         kind: test
   - id: run
@@ -59,9 +41,14 @@ commands:
       commandLine: ./space-demo
       group:
         kind: run
-  - id: cleanup
+  - id: deploy-mysql
     exec:
-      label: 4.Cleanup
+      label: 4.Deploy Mysql
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: rm -rf ./space-demo
+      commandLine: |
+        oc new-app --name mysql \
+        --image registry.redhat.io/rhel8/mysql-80:latest \
+        -e MYSQL_HOST=${MYSQL_HOST} -e MYSQL_DATABASE=${MYSQL_DATABASE} \
+        -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
