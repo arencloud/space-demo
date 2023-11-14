@@ -40,13 +40,18 @@ commands:
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
       commandLine: go test -v
-  - id: api-build-dev-deploy
+  - id: inner-loop-api-deploy
     exec:
-      label: 3.Api Dev Deploy
-      commandLine: 'oc new-project ${WORKSPACE_DEV_PROJ} && oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5 | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5 | head -c 20; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${WORKSPACE_DEV_PROJ} && 
+      label: 3.Inner-loop-api-deploy
+      commandLine: 'oc new-project ${WORKSPACE_DEV_PROJ} && oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5sum | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5sum | head -c 30; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${WORKSPACE_DEV_PROJ} && 
       oc new-app --name mysql --image mysql:latest --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} && oc new-build rhel8/go-toolset:latest --name space-demo --labels=component=api --binary=true  --allow-missing-images --strategy=source --to space-demo:dev --namespace ${WORKSPACE_DEV_PROJ} &&
       oc start-build space-demo --from-dir=. -w --namespace ${WORKSPACE_DEV_PROJ} && oc new-app --name space-demo space-demo:dev --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/space-demo --prefix MYSQL_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} &&
       oc expose svc space-demo --namespace ${WORKSPACE_DEV_PROJ}'
+      component: tools
+  - id: inner-loop-api-destroy
+    exec:
+      label: 4.Inner-loop-api-destroy
+      commandLine: 'oc delete project ${WORKSPACE_DEV_PROJ}'
       component: tools
 
 
