@@ -2,6 +2,7 @@ package initlib
 
 import (
 	"fmt"
+	"github.com/arencloud/space-demo/models"
 	"log"
 	"os"
 
@@ -22,7 +23,7 @@ func ConnectDatabase(config *Config) {
 	}
 	db.Logger = logger.Default.LogMode(logger.Info)
 	log.Println("Running Migrations")
-	db.AutoMigrate()
+	db.AutoMigrate(&models.Note{})
 
 	log.Println("Connected Successfully to the Database!!!")
 }
