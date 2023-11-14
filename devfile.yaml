@@ -1,6 +1,16 @@
 schemaVersion: 2.2.0
 metadata:
   name: space-demo
+
+projects:
+  - attributes:
+      source-origin: branch
+    name: space-demo
+    git:
+      checkoutFrom:
+        revision: 'main'
+      remotes:
+        origin: 'https://github.com/arencloud/space-demo.git'
 components:
   - name: tools
     container:
@@ -10,6 +20,8 @@ components:
       env:
         - name: COCACHE
           value: /tmp/.cache
+        - name: WORKSPACE_DEV_PROJ
+          value: space-demo-dev
       endpoints:
         - exposure: public
           name: 'space-demo'
@@ -21,34 +33,21 @@ commands:
       label: 1.Build
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: go build
-      group:
-        kind: build
-        isDefault: true
+      commandLine: go build -o space-demo
   - id: test
     exec:
       label: 2.Test
       component: tools
       workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: go test
-      group:
-        kind: test
-  - id: run
+      commandLine: go test -v
+  - id: api-build-dev-deploy
     exec:
-      label: 3.Run
+      label: 3.Api Dev Deploy
+      commandLine: 'oc new-project ${WORKSPACE_DEV_PROJ} && oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5 | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5 | head -c 20; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${WORKSPACE_DEV_PROJ} && 
+      oc new-app --name mysql --image mysql:latest --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} && oc new-build rhel8/go-toolset:latest --name space-demo --labels=component=api --binary=true  --allow-missing-images --strategy=source --to space-demo:dev --namespace ${WORKSPACE_DEV_PROJ} &&
+      oc start-build space-demo --from-dir=. -w --namespace ${WORKSPACE_DEV_PROJ} && oc new-app --name space-demo space-demo:dev --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/space-demo --prefix MYSQL_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} &&
+      oc expose svc space-demo --namespace ${WORKSPACE_DEV_PROJ}'
       component: tools
-      workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: ./space-demo
-      group:
-        kind: run
-  - id: deploy-mysql
-    exec:
-      label: 4.Deploy Mysql
-      component: tools
-      workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: |
-        oc new-app --name mysql \
-        --image registry.redhat.io/rhel8/mysql-80:latest \
-        -e MYSQL_HOST=${MYSQL_HOST} -e MYSQL_DATABASE=${MYSQL_DATABASE} \
-        -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+
 
