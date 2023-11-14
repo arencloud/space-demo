@@ -4,10 +4,17 @@ import (
 	"log"
 
 	"github.com/arencloud/space-demo/controllers"
+	"github.com/arencloud/space-demo/initlib"
 	"github.com/gofiber/fiber/v2"
+
 	//"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
+
+func init() {
+	config := initlib.LoadConfig()
+	initlib.ConnectDatabase(&config)
+}
 
 func main() {
 	app := fiber.New()
