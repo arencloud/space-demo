@@ -27,6 +27,25 @@ components:
           name: 'space-demo'
           protocol: http
           targetPort: 8080
+  - name: mysql
+    container:
+      image: mysql:latest
+      memoryLimit: '512Mi'
+      mountSources: true
+      env:
+        - name: MYSQL_PASSWORD
+          value: demo123
+        - name: MYSQL_USER
+          value: spacedemo
+        - name: MYSQL_DATABASE
+          value: spacedemo
+        - name: MYSQL_ROOT_PASSWORD
+          value: demo123
+      endpoints:
+        - exposure: internal
+          name: 'mysql'
+          protocol: tcp
+          targetPort: 3306
 commands:
   - id: build
     exec:
