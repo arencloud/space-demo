@@ -22,10 +22,16 @@ components:
           value: /tmp/.cache
         - name: WORKSPACE_DEV_PROJ
           value: space-demo-dev
-        - name: MYSQL_PORT
-          value: '3306'
-        - name: MYSQL_HOST
+        - name: SPACE_DEMO_DB_HOST
           value: localhost
+        - name: SPACE_DEMO_DB_PORT
+          value: '3306'
+        - name: SPACE_DEMO_DB_USER
+          value: spacedemo
+        - name: SPACE_DEMO_DB_PASSWORD
+          value: 'demo123'
+        - name: SPACE_DEMO_DB_DATABASE
+          value: spacedemo
       endpoints:
         - exposure: public
           name: 'space-demo'
