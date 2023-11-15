@@ -43,6 +43,8 @@ components:
           value: demo123
         - name: MYSQL_PORT
           value: '3306'
+        - name: MYSQL_HOST
+          value: localhost
       endpoints:
         - exposure: internal
           name: 'mysql'
