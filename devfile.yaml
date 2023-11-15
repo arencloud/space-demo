@@ -46,7 +46,7 @@ components:
         - name: MYSQL_HOST
           value: localhost
       endpoints:
-        - exposure: internal
+        - exposure: none
           name: 'mysql'
           protocol: tcp
           targetPort: 3306
