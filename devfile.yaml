@@ -41,6 +41,8 @@ components:
           value: spacedemo
         - name: MYSQL_ROOT_PASSWORD
           value: demo123
+        - name: MYSQL_PORT
+          value: '3306'
       endpoints:
         - exposure: internal
           name: 'mysql'
