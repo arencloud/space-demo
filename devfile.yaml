@@ -22,6 +22,10 @@ components:
           value: /tmp/.cache
         - name: WORKSPACE_DEV_PROJ
           value: space-demo-dev
+        - name: MYSQL_PORT
+          value: '3306'
+        - name: MYSQL_HOST
+          value: localhost
       endpoints:
         - exposure: public
           name: 'space-demo'
@@ -41,11 +45,9 @@ components:
           value: spacedemo
         - name: MYSQL_ROOT_PASSWORD
           value: demo123
-        - name: MYSQL_PORT
-          value: '3306'
       endpoints:
         - exposure: none
-          name: 'localhost'
+          name: 'mysql'
           protocol: tcp
           targetPort: 3306
 commands:
