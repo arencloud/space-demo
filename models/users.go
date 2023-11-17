@@ -5,8 +5,8 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model
 	ID    int
-	Name  string
-	Email string
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 func CreateUser(db *gorm.DB, user *User) (result *gorm.DB) {
@@ -16,7 +16,7 @@ func CreateUser(db *gorm.DB, user *User) (result *gorm.DB) {
 }
 
 func GetUsers(db *gorm.DB, user *[]User) (result *gorm.DB) {
-	result = db.First(user)
+	result = db.Find(user)
 	return
 }
 
