@@ -5,17 +5,23 @@ import (
 
 	"github.com/arencloud/space-demo/controllers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/contrib/swagger"
 
 	//"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
+	cfg := swagger.Config{
+		BasePath: "/docs",
+		FilePath: "./docs/swagger.json",
+	}
 	user := controllers.New()
 	app := fiber.New()
 	mApp := fiber.New()
 	app.Mount("/api", mApp)
 	app.Use(logger.New())
+	app.Use(swagger.New(cfg))
 
 	mApp.Route("/users", func(router fiber.Router) {
 		router.Post("/create", user.CreateUserHandler)
