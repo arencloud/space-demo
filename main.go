@@ -13,7 +13,8 @@ import (
 
 func main() {
 	cfg := swagger.Config{
-		BasePath: "/docs",
+		BasePath: "/",
+        Path: "docs",
 		FilePath: "./docs/swagger.json",
 	}
 	user := controllers.New()
