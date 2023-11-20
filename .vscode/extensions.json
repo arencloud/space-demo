@@ -1,5 +1,8 @@
 {
   "recommendations":[
-    "golang.go"
+    "golang.go",
+    "SonarSource.sonarlint-vscode",
+    "redhat.vscode-yaml",
+    "techer.open-in-browser"
   ]
 }
