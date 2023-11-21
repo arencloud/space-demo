@@ -60,7 +60,7 @@ commands:
       label: 1.Running Application
       component: tools
       workingDir: ${PROJECT_SOURCE}
-      commandLine: go run -o main.go
+      commandLine: go run main.go
   - id: test
     exec:
       label: 2.Testing Application
