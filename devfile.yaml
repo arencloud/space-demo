@@ -1,7 +1,6 @@
 schemaVersion: 2.2.0
 metadata:
   name: space-demo
-
 projects:
   - attributes:
       source-origin: branch
@@ -20,8 +19,6 @@ components:
       env:
         - name: COCACHE
           value: /tmp/.cache
-        - name: WORKSPACE_DEV_PROJ
-          value: space-demo-dev
         - name: SPACE_DEMO_DB_HOST
           value: localhost
         - name: SPACE_DEMO_DB_PORT
@@ -34,7 +31,8 @@ components:
           value: spacedemo
       endpoints:
         - exposure: public
-          name: 'space-demo'
+          name: 'web'
+          secure: true
           protocol: http
           targetPort: 8080
   - name: mysql
@@ -52,36 +50,82 @@ components:
         - name: MYSQL_ROOT_PASSWORD
           value: demo123
       endpoints:
-        - exposure: none
+        - exposure: internal
           name: 'mysql'
           protocol: tcp
           targetPort: 3306
 commands:
-  - id: build
+  - id: run
     exec:
-      label: 1.Build
+      label: 1.Running Application
       component: tools
-      workingDir: ${PROJECTS_ROOT}/space-demo
-      commandLine: go build -o space-demo
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: go run -o main.go
   - id: test
     exec:
-      label: 2.Test
+      label: 2.Testing Application
       component: tools
-      workingDir: ${PROJECTS_ROOT}/space-demo
+      workingDir: ${PROJECT_SOURCE}
       commandLine: go test -v ./tests/
-  - id: inner-loop-api-deploy
+  - id: deploy-mysql
     exec:
-      label: 3.Inner-loop-api-deploy
-      commandLine: 'oc new-project ${WORKSPACE_DEV_PROJ} && oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5sum | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5sum | head -c 30; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${WORKSPACE_DEV_PROJ} &&
-        oc new-app --name mysql --image mysql:latest --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} && oc new-build --name space-demo --labels=component=api  --binary=true --allow-missing-images --strategy=docker --to space-demo:dev --namespace ${WORKSPACE_DEV_PROJ} &&
-        oc start-build space-demo --from-dir=. -w --namespace ${WORKSPACE_DEV_PROJ} && oc new-app --name space-demo space-demo:dev -e SPACE_DEMO_DB_PORT=3306 --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${WORKSPACE_DEV_PROJ} && oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${WORKSPACE_DEV_PROJ} &&
-        oc expose deployment/space-demo --port 8080 --namespace ${WORKSPACE_DEV_PROJ} && oc expose svc space-demo --namespace ${WORKSPACE_DEV_PROJ} && oc get route space-demo --output jsonpath={.spec.host} --namespace ${WORKSPACE_DEV_PROJ}'
+      label: Inner-loop - Mysql Deploy
       component: tools
-  - id: inner-loop-api-destroy
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: 'oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5sum | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5sum | head -c 30; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc new-app --name mysql --image mysql:latest --namespace ${DEVWORKSPACE_ID}-dev && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev'
+  - id: build-app-image-initial
     exec:
-      label: 4.Inner-loop-api-destroy
-      commandLine: 'oc delete project ${WORKSPACE_DEV_PROJ}'
+      label: Inner-loop - Build Application Image Initial
       component: tools
-
-
-
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: 'oc new-build --name space-demo --labels=component=api  --binary=true --allow-missing-images --strategy=docker --to space-demo:dev --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev'
+  - id: deploy-app
+    exec:
+      label: Inner-loop - Deploy Application
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: 'oc new-app --name space-demo space-demo:dev -e SPACE_DEMO_DB_PORT=3306 --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc expose deployment/space-demo --port 8080 --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc expose svc space-demo --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev'
+  - id: rebuild-app-image
+    exec:
+      label: Inner-loop - Rebuild Application
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: 'oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev'
+  - id: provision-inner-loop-namespace
+    exec:
+      label: Inner-loop - Provision Inner-loop namespace
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: 'oc new-project ${DEVWORKSPACE_ID}-dev'
+  - id: inner-loop-app-full-stack-deploy
+    composite:
+      label: 3.Inner-loop - Full Stack Deploy
+      commands:
+        - provision-inner-loop-namespace
+        - deploy-mysql
+        - build-app-image-initial
+        - deploy-app
+  - id: inner-loop-permanent-cleanup
+    exec:
+      workingDir: ${PROJECT_SOURCE}
+      label: 4.Inner-loop - Full Stack Permanent Cleanup
+      commandLine: 'oc delete project ${DEVWORKSPACE_ID}-dev'
+      component: tools
+  - id: inner-loop-tests
+    exec:
+      workingDir: ${PROJECT_SOURCE}
+      label: Inner-loop - Test Cases
+      component: tools
+      commandLine: 'bash .cases/test-cases.sh'
+  - id: show-inner-loop-debug-urls
+    exec:
+      workingDir: ${PROJECT_SOURCE}
+      label: show-running-debug-urls
+      commandLine: yq '.components[].container.endpoints | select(.)[].attributes."controller.devfile.io/endpoint-url" | select(.)' /devworkspace-metadata/flattened.devworkspace.yaml
+      component: tools
