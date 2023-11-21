@@ -111,6 +111,8 @@ commands:
         - deploy-mysql
         - build-app-image-initial
         - deploy-app
+      group:
+        kind: run
   - id: inner-loop-permanent-cleanup
     exec:
       workingDir: ${PROJECT_SOURCE}
