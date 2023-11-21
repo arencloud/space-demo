@@ -67,52 +67,27 @@ commands:
       component: tools
       workingDir: ${PROJECT_SOURCE}
       commandLine: go test -v ./tests/
-  - id: deploy-mysql
-    exec:
-      label: Inner-loop - Mysql Deploy
-      component: tools
-      workingDir: ${PROJECT_SOURCE}
-      commandLine: 'oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5sum | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5sum | head -c 30; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc new-app --name mysql --image mysql:latest --namespace ${DEVWORKSPACE_ID}-dev && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev'
-  - id: build-app-image-initial
-    exec:
-      label: Inner-loop - Build Application Image Initial
-      component: tools
-      workingDir: ${PROJECT_SOURCE}
-      commandLine: 'oc new-build --name space-demo --labels=component=api  --binary=true --allow-missing-images --strategy=docker --to space-demo:dev --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev'
-  - id: deploy-app
-    exec:
-      label: Inner-loop - Deploy Application
-      component: tools
-      workingDir: ${PROJECT_SOURCE}
-      commandLine: 'oc new-app --name space-demo space-demo:dev -e SPACE_DEMO_DB_PORT=3306 --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc expose deployment/space-demo --port 8080 --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc expose svc space-demo --namespace ${DEVWORKSPACE_ID}-dev &&
-        Public:$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)'
   - id: rebuild-app-image
     exec:
       label: Inner-loop - Rebuild Application
       component: tools
       workingDir: ${PROJECT_SOURCE}
       commandLine: 'oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev'
-  - id: provision-inner-loop-namespace
-    exec:
-      label: Inner-loop - Provision Inner-loop namespace
-      component: tools
-      workingDir: ${PROJECT_SOURCE}
-      commandLine: 'oc new-project ${DEVWORKSPACE_ID}-dev'
   - id: inner-loop-app-full-stack-deploy
-    composite:
+    exec:
       label: 3.Inner-loop - Full Stack Deploy
-      commands:
-        - provision-inner-loop-namespace
-        - deploy-mysql
-        - build-app-image-initial
-        - deploy-app
-      group:
-        kind: run
+      workingDir: ${PROJECT_SOURCE}
+      component: tools
+      commandLine: 'oc new-project ${DEVWORKSPACE_ID}-dev &&
+        oc create secret generic mysql --from-literal=user=spacedemo --from-literal=password=$(echo $RANDOM | md5sum | head -c 20; echo;) --from-literal=root_password=$(echo $RANDOM | md5sum | head -c 30; echo;) --from-literal=database=spacedemo --from-literal=host=mysql --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc new-app --name mysql --image mysql:latest --namespace ${DEVWORKSPACE_ID}-dev && oc set env deployment/mysql --prefix MYSQL_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc new-build --name space-demo --labels=component=api  --binary=true --allow-missing-images --strategy=docker --to space-demo:dev --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc new-app --name space-demo space-demo:dev -e SPACE_DEMO_DB_PORT=3306 --labels=app=space-demo,app.kubernetes.io/instance=api,app.openshift.io/runtime=go --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc expose deployment/space-demo --port 8080 --namespace ${DEVWORKSPACE_ID}-dev &&
+        oc expose svc space-demo --namespace ${DEVWORKSPACE_ID}-dev &&
+        Public:$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)'
   - id: inner-loop-permanent-cleanup
     exec:
       workingDir: ${PROJECT_SOURCE}
@@ -122,12 +97,12 @@ commands:
   - id: inner-loop-tests
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: Inner-loop - Test Cases
+      label: 5.Inner-loop - Test Cases
       component: tools
       commandLine: 'bash .cases/test-cases.sh'
   - id: show-inner-loop-debug-urls
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: show-running-debug-urls
-      commandLine: yq '.components[].container.endpoints | select(.)[].attributes."controller.devfile.io/endpoint-url" | select(.)' /devworkspace-metadata/flattened.devworkspace.yaml
+      label: 6.Run - Local developer debug urls
       component: tools
+      commandLine: yq '.components[].container.endpoints | select(.)[].attributes."controller.devfile.io/endpoint-url" | select(.)' /devworkspace-metadata/flattened.devworkspace.yaml
