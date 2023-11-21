@@ -90,7 +90,7 @@ commands:
         oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
         oc expose deployment/space-demo --port 8080 --namespace ${DEVWORKSPACE_ID}-dev &&
         oc expose svc space-demo --namespace ${DEVWORKSPACE_ID}-dev &&
-        oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev'
+        Public:$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)'
   - id: rebuild-app-image
     exec:
       label: Inner-loop - Rebuild Application
