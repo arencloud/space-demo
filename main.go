@@ -3,25 +3,17 @@ package main
 import (
 	"log"
 
-	"embed"
-
 	"github.com/arencloud/space-demo/controllers"
 	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 
 	//"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-
-	"github.com/soypat/rebed"
 )
-
-//go:embed docs/swagger.*
-var swaggerFiles embed.FS
 
 
 
 func main() {
-	rebed.Write(swaggerFiles, "")
 	cfg := swagger.Config{
 		BasePath: "/",
         Path: "docs",
