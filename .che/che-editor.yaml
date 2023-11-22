@@ -1,1 +1,3 @@
 id: che-incubator/che-code/latest
+# for jetbrains IntelliJ community edition IDE, comment line 1 and uncomment line below
+#id: che-incubator/che-idea/latest
