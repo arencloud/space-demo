@@ -21,10 +21,15 @@ func main() {
 	}
 	user := controllers.New()
 	app := fiber.New()
+	api := fiber.New()
 	mApp := fiber.New()
-	app.Mount("/api", mApp)
+	app.Mount("/", api)
 	app.Use(logger.New())
 	app.Use(swagger.New(cfg))
+
+	//app.Static("", "public")
+
+	api.Mount("api", mApp)
 
 	mApp.Route("/users", func(router fiber.Router) {
 		router.Post("/create", user.CreateUserHandler)

@@ -8,4 +8,5 @@ FROM ubi8/ubi-minimal:8.9-1029 AS production
 WORKDIR /app
 COPY --from=builder /tmp/app .
 COPY docs /app/docs
+#COPY public /app/public
 CMD ["./app"]
