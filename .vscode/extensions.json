@@ -3,6 +3,6 @@
     "golang.go",
     "SonarSource.sonarlint-vscode",
     "redhat.vscode-yaml",
-    "techer.open-in-browser"
+    "redhat.fabric8-analytics"
   ]
 }
