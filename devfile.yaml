@@ -87,7 +87,7 @@ commands:
         oc set env deployment/space-demo --prefix  SPACE_DEMO_DB_ --from secret/mysql --namespace ${DEVWORKSPACE_ID}-dev &&
         oc expose deployment/space-demo --port 8080 --namespace ${DEVWORKSPACE_ID}-dev &&
         oc expose svc space-demo --namespace ${DEVWORKSPACE_ID}-dev &&
-        echo "\nPublic URL: http://" && oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev'
+        echo -e "\nSuccessfully deployed Inner-loop full developer stack and ready to use!!!\nPublic URL: http://$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)\n"'
   - id: inner-loop-permanent-cleanup
     exec:
       workingDir: ${PROJECT_SOURCE}
@@ -103,6 +103,12 @@ commands:
   - id: show-inner-loop-debug-urls
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: 6.Run - Local developer debug urls
+      label: 6.Local developer URLs for debugging purposes
       component: tools
       commandLine: yq '.components[].container.endpoints | select(.)[].attributes."controller.devfile.io/endpoint-url" | select(.)' /devworkspace-metadata/flattened.devworkspace.yaml
+  - id: show-inner-loop-dev-test-urls
+    exec:
+      workingDir: ${PROJECT_SOURCE}
+      label: 7.Inner-loop - Full Stack URL
+      component: tools
+      commandLine: 'echo -e "\nPublic URL: http://$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)\n"'
