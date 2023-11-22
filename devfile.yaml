@@ -69,13 +69,13 @@ commands:
       commandLine: go test -v ./tests/
   - id: rebuild-app-image
     exec:
-      label: Inner-loop - Rebuild Application
+      label: 3.Inner-loop - Rebuild Application
       component: tools
       workingDir: ${PROJECT_SOURCE}
       commandLine: 'oc start-build space-demo --from-dir=. -w --namespace ${DEVWORKSPACE_ID}-dev'
   - id: inner-loop-app-full-stack-deploy
     exec:
-      label: 3.Inner-loop - Full Stack Deploy
+      label: 4.Inner-loop - Full Stack Deploy
       workingDir: ${PROJECT_SOURCE}
       component: tools
       commandLine: 'oc new-project ${DEVWORKSPACE_ID}-dev &&
@@ -91,24 +91,26 @@ commands:
   - id: inner-loop-permanent-cleanup
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: 4.Inner-loop - Full Stack Permanent Cleanup
-      commandLine: 'oc delete project ${DEVWORKSPACE_ID}-dev'
+      label: 5.Inner-loop - Full Stack Permanent Cleanup
       component: tools
+      commandLine: 'echo -e "Starting cleanup process\n" &&
+        oc delete project ${DEVWORKSPACE_ID}-dev &&
+        echo -e "\n Cleanup process successfully finished!\n"' 
   - id: inner-loop-tests
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: 5.Inner-loop - Test Cases
+      label: 6.Inner-loop - Test Cases
       component: tools
       commandLine: 'bash .cases/test-cases.sh'
   - id: show-inner-loop-debug-urls
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: 6.Local developer URLs for debugging purposes
+      label: 7.Local developer URLs for debugging purposes
       component: tools
       commandLine: yq '.components[].container.endpoints | select(.)[].attributes."controller.devfile.io/endpoint-url" | select(.)' /devworkspace-metadata/flattened.devworkspace.yaml
   - id: show-inner-loop-dev-test-urls
     exec:
       workingDir: ${PROJECT_SOURCE}
-      label: 7.Inner-loop - Full Stack URL
+      label: 8.Inner-loop - Full Stack URL
       component: tools
       commandLine: 'echo -e "\nPublic URL: http://$(oc get route space-demo --output jsonpath={.spec.host} --namespace ${DEVWORKSPACE_ID}-dev)\n"'
