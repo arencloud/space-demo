@@ -1,0 +1,25 @@
+applications:
+  - name: bootstrap
+    env:
+      - name: PROJ_NAME
+        value: space-demo
+    enabled: true
+    source: https://redhat-cop.github.io/helm-charts
+    chart_name: bootstrap-project
+    source_ref: "1.0.1"
+    values:
+      serviceaccounts: ""
+      bindings: &binds
+        - name: github-groups
+          kind: Group
+          role: admin
+      namespaces:
+        - name: ${PROJ_NAME}-ci-cd
+          bindings: *binds
+          operatorgroup: true
+        - name: ${PROJ_NAME}-dev
+          bindings: *binds
+          operatorgroup: true
+        - name: ${PROJ_NAME}-stage
+          bindings: *binds
+          operatorgroup: true
